@@ -1,0 +1,55 @@
+name: Deploy Lambda Function
+
+on:
+  push:
+    branches:
+      - main  # Trigger auf den 'main' Branch setzen
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'  # Node.js Version einstellen
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Zip Lambda Code
+        run: zip -r function.zip .  # Zippen des Lambda-Codes
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  # AWS Zugangsschlüssel
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # AWS geheimer Zugangsschlüssel
+          aws-region: ${{ secrets.AWS_REGION }}  # AWS Region
+
+      - name: Deploy to AWS Lambda
+        run: aws lambda update-function-code --function-name prediction_generator_function --zip-file fileb://function.zip
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'  # Node.js Version einstellen
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Lambda Function Test
+        run: |
+          echo "Running lambda function test..."
+          node -e "const { handler } = require('./index'); handler({}, null, (err, res) => console.log(res));"
