@@ -3,13 +3,13 @@ const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
 
-    const predictionID = `pred-$(Date.now())`;
+    const predictionId = `pred-$(Date.now())`;
     const { question, prediction } = event;
 
     const params = {
       TableName: process.env.DYNAMODB_TABLE,
       Item: {
-        predictionID,
+        predictionId,
         question,
         prediction
       }
@@ -19,7 +19,7 @@ exports.handler = async (event) => {
       await dynamodb.put(params).promise();
       return {
         statusCode: 200,
-        body: JSON.stringify({ message: "Prediction saved successfully", predictionID })
+        body: JSON.stringify({ message: "Prediction saved successfully", predictionId })
       };
     } catch (error) {
         return {
